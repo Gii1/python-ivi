@@ -10,7 +10,48 @@ class IviInherentAttribute(TypedDict, total=False):
     driver_setup: Any
     prefer_pyvisa: bool
 
-class Device:
+class IviDriverIdentity:
+    @property
+    def description(self) -> str: pass
+
+    @property
+    def identifier(self) -> str: pass
+
+    @property
+    def revesion(self) -> str: pass
+
+    @property
+    def vendor(self) -> str: pass
+
+    @property
+    def instrument_manufacturer(self) -> str: pass
+
+    @property
+    def instrument_model(self) -> str: pass
+
+    @property
+    def instrument_firmware_revision(self) -> str: pass
+
+    @property
+    def specification_major_version(self) -> int: pass
+
+    @property
+    def specification_minor_version(self) -> int: pass
+
+    @property
+    def supported_instrument_models(self) -> str: pass
+
+    @property
+    def group_capabilities(self) -> str: pass
+
+    def get_group_capabilities(self) -> list[str]: pass
+
+    def get_supported_instrument_models(self) -> list[str]: pass
+
+class DriverIdentity:
+    identity: IviDriverIdentity
+
+class Device(DriverIdentity):
     @property 
     def initialized(self) -> bool: pass
 
