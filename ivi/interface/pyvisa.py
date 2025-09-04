@@ -25,47 +25,19 @@ THE SOFTWARE.
 """
 
 import io
-import sys
-from distutils.version import StrictVersion
+import pyvisa as visa
 
-try:
-    import visa
-    try:
-        # New style PyVISA
-        visa_rm = visa.ResourceManager()
-        visa_instrument_opener = visa_rm.open_resource
-    except AttributeError:
-        # Old style PyVISA
-        visa_instrument_opener = visa.instrument
-except ImportError:
-    # PyVISA not installed, pass it up
-    raise ImportError
-except:
-    # any other error
-    e = sys.exc_info()[1]
-    sys.stderr.write("python-ivi: PyVISA is installed, but could not be loaded (%s: %s)\n" %
-        (e.__class__.__name__, e.args[0]))
-    raise ImportError
+visa_rm = visa.ResourceManager()
 
 def list_resources():
     "List PyVisa resource strings"
-    try:
-        # New style PyVISA
-        return visa_rm.list_resources()
-    except AttributeError:
-        # Old style PyVISA
-        return visa.get_instruments_list()
-
-    return []
+    return visa_rm.list_resources()
 
 class PyVisaInstrument:
     "PyVisa wrapper instrument interface client"
     def __init__(self, resource, *args, **kwargs):
         if type(resource) is str:
-            self.instrument = visa_instrument_opener(resource, *args, **kwargs)
-            # For compatibility with old style PyVISA
-            if not hasattr(self.instrument, 'assert_trigger'):
-                self.instrument.assert_trigger = self.instrument.trigger
+            self.instrument = visa_rm.open_resource(resource, *args, **kwargs)
         else:
             self.instrument = resource
         self.buffer = io.BytesIO()
