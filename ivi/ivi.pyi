@@ -11,7 +11,8 @@ class IviInherentAttribute(TypedDict, total=False):
     prefer_pyvisa: bool
 
 class Device:
-    initialized: bool
+    @property 
+    def initialized(self) -> bool: pass
 
     def initialize(self, **kwargs: Unpack[IviInherentAttribute]) -> None: pass
     def close(self) -> None: pass
