@@ -1877,7 +1877,7 @@ class Driver(DriverOperation, DriverIdentity, DriverUtility):
             # ASRL::COM1,9600,8n1::INSTR
             # ASRL::/dev/ttyUSB0,9600::INSTR
             # ASRL::/dev/ttyUSB0,9600,8n1::INSTR
-            m = re.match('^(?P<prefix>(?P<type>TCPIP|USB|GPIB|ASRL)\d*)(::(?P<arg1>[^\s:]+))?(::(?P<arg2>[^\s:]+(\[.+\])?))?(::(?P<arg3>[^\s:]+))?(::(?P<arg4>[^\s:]+))?(::(?P<suffix>INSTR|SOCKET))$', resource, re.I)
+            m = re.match(r'^(?P<prefix>(?P<type>TCPIP|USB|GPIB|ASRL)\d*)(::(?P<arg1>[^\s:]+))?(::(?P<arg2>[^\s:]+(\[.+\])?))?(::(?P<arg3>[^\s:]+))?(::(?P<arg4>[^\s:]+))?(::(?P<suffix>INSTR|SOCKET))$', resource, re.I)
             if m is None:
                 if 'pyvisa' in globals():
                     # connect with PyVISA
@@ -1890,11 +1890,11 @@ class Driver(DriverOperation, DriverIdentity, DriverUtility):
                 res_arg1 = m.group('arg1')
                 res_arg2 = m.group('arg2')
                 res_arg3 = m.group('arg3')
-                res_suffix = m.group('suffix')
+                res_suffix = m.group('suffix').upper()
 
                 if res_type == 'TCPIP':
                     # TCP connection
-                    if self._prefer_pyvisa and 'pyvisa' in globals():
+                    if (self._prefer_pyvisa or res_suffix == "SOCKET") and 'pyvisa' in globals():
                         # connect with PyVISA
                         self._interface = pyvisa.PyVisaInstrument(resource, **self._pyvisa_opts)
                     elif 'vxi11' in globals():
