@@ -1615,7 +1615,7 @@ class Driver(DriverOperation, DriverIdentity, DriverUtility):
         # process out args for initialize
         kw = {}
         for k in ('range_check', 'query_instr_status', 'cache', 'simulate', 'record_coercions',
-                'interchange_check', 'driver_setup', 'prefer_pyvisa'):
+                'interchange_check', 'driver_setup', 'prefer_pyvisa', 'pyvisa_opts'):
             if k in kwargs:
                 kw[k] = kwargs.pop(k)
         
@@ -1696,6 +1696,7 @@ class Driver(DriverOperation, DriverIdentity, DriverUtility):
                         
                         Example resource strings::
                             
+                            'TCPIP0::10.0.0.1::12345::SOCKET'  where 12345 is a TCP port
                             'TCPIP::10.0.0.1::INSTR'
                             'TCPIP0::10.0.0.1::INSTR'
                             'TCPIP::10.0.0.1::gpib,5::INSTR'
@@ -1752,6 +1753,8 @@ class Driver(DriverOperation, DriverIdentity, DriverUtility):
                         | Driver Setup            | ''                   | driver_setup        |
                         +-------------------------+----------------------+---------------------+
                         | Prefer PyVISA           | False                | prefer_pyvisa       |
+                        +-------------------------+----------------------+---------------------+
+                        | PyVISA Options          | {}                   | pyvisa_opts         |
                         +-------------------------+----------------------+---------------------+
                         
                         Each IVI specific driver defines it own meaning and valid values for the
@@ -1823,6 +1826,7 @@ class Driver(DriverOperation, DriverIdentity, DriverUtility):
     def _initialize(self, resource = None, id_query = False, reset = False, **keywargs):
         "Opens an I/O session to the instrument."
 
+        self._pyvisa_opts = {}
         # decode options
         for op in keywargs:
             val = keywargs[op]
@@ -1842,6 +1846,8 @@ class Driver(DriverOperation, DriverIdentity, DriverUtility):
                 self._driver_operation_driver_setup = val
             elif op == 'prefer_pyvisa':
                 self._prefer_pyvisa = bool(val)
+            elif op == 'pyvisa_opts':
+                self._pyvisa_opts.update(val)
             else:
                 raise UnknownOptionException('Invalid option')
 
@@ -1853,6 +1859,7 @@ class Driver(DriverOperation, DriverIdentity, DriverUtility):
         elif type(resource) == str:
             # parse VISA resource string
             # valid resource strings:
+            # TCPIP0::10.0.0.1::12345::SOCKET
             # TCPIP::10.0.0.1::INSTR
             # TCPIP0::10.0.0.1::INSTR
             # TCPIP::10.0.0.1::gpib,5::INSTR
@@ -1870,11 +1877,11 @@ class Driver(DriverOperation, DriverIdentity, DriverUtility):
             # ASRL::COM1,9600,8n1::INSTR
             # ASRL::/dev/ttyUSB0,9600::INSTR
             # ASRL::/dev/ttyUSB0,9600,8n1::INSTR
-            m = re.match('^(?P<prefix>(?P<type>TCPIP|USB|GPIB|ASRL)\d*)(::(?P<arg1>[^\s:]+))?(::(?P<arg2>[^\s:]+(\[.+\])?))?(::(?P<arg3>[^\s:]+))?(::(?P<arg4>[^\s:]+))?(::(?P<suffix>INSTR))$', resource, re.I)
+            m = re.match('^(?P<prefix>(?P<type>TCPIP|USB|GPIB|ASRL)\d*)(::(?P<arg1>[^\s:]+))?(::(?P<arg2>[^\s:]+(\[.+\])?))?(::(?P<arg3>[^\s:]+))?(::(?P<arg4>[^\s:]+))?(::(?P<suffix>INSTR|SOCKET))$', resource, re.I)
             if m is None:
                 if 'pyvisa' in globals():
                     # connect with PyVISA
-                    self._interface = pyvisa.PyVisaInstrument(resource)
+                    self._interface = pyvisa.PyVisaInstrument(resource, **self._pyvisa_opts)
                 else:
                     raise IOException('Invalid resource string')
             else:
@@ -1889,58 +1896,58 @@ class Driver(DriverOperation, DriverIdentity, DriverUtility):
                     # TCP connection
                     if self._prefer_pyvisa and 'pyvisa' in globals():
                         # connect with PyVISA
-                        self._interface = pyvisa.PyVisaInstrument(resource)
+                        self._interface = pyvisa.PyVisaInstrument(resource, **self._pyvisa_opts)
                     elif 'vxi11' in globals():
                         # connect with VXI-11
                         self._interface = vxi11.Instrument(resource)
                     elif 'pyvisa' in globals():
                         # connect with PyVISA
-                        self._interface = pyvisa.PyVisaInstrument(resource)
+                        self._interface = pyvisa.PyVisaInstrument(resource, **self._pyvisa_opts)
                     else:
                         raise IOException('Cannot use resource type %s' % res_type)
                 elif res_type == 'USB':
                     # USB connection
                     if self._prefer_pyvisa and 'pyvisa' in globals():
                         # connect with PyVISA
-                        self._interface = pyvisa.PyVisaInstrument(resource)
+                        self._interface = pyvisa.PyVisaInstrument(resource, **self._pyvisa_opts)
                     elif 'usbtmc' in globals():
                         # connect with USBTMC
                         self._interface = usbtmc.Instrument(resource)
                     elif 'pyvisa' in globals():
                         # connect with PyVISA
-                        self._interface = pyvisa.PyVisaInstrument(resource)
+                        self._interface = pyvisa.PyVisaInstrument(resource, **self._pyvisa_opts)
                     else:
                         raise IOException('Cannot use resource type %s' % res_type)
                 elif res_type == 'GPIB':
                     # GPIB connection
                     if self._prefer_pyvisa and 'pyvisa' in globals():
                         # connect with PyVISA
-                        self._interface = pyvisa.PyVisaInstrument(resource)
+                        self._interface = pyvisa.PyVisaInstrument(resource, **self._pyvisa_opts)
                     elif 'linuxgpib' in globals():
                         # connect with linux-gpib
                         self._interface = linuxgpib.LinuxGpibInstrument(resource)
                     elif 'pyvisa' in globals():
                         # connect with PyVISA
-                        self._interface = pyvisa.PyVisaInstrument(resource)
+                        self._interface = pyvisa.PyVisaInstrument(resource, **self._pyvisa_opts)
                     else:
                         raise IOException('Cannot use resource type %s' % res_type)
                 elif res_type == 'ASRL':
                     # Serial connection
                     if self._prefer_pyvisa and 'pyvisa' in globals():
                         # connect with PyVISA
-                        self._interface = pyvisa.PyVisaInstrument(resource)
+                        self._interface = pyvisa.PyVisaInstrument(resource, **self._pyvisa_opts)
                     elif 'pyserial' in globals():
                         # connect with PySerial
                         self._interface = pyserial.SerialInstrument(resource)
                     elif 'pyvisa' in globals():
                         # connect with PyVISA
-                        self._interface = pyvisa.PyVisaInstrument(resource)
+                        self._interface = pyvisa.PyVisaInstrument(resource, **self._pyvisa_opts)
                     else:
                         raise IOException('Cannot use resource type %s' % res_type)
 
                 elif 'pyvisa' in globals():
                     # connect with PyVISA
-                    self._interface = pyvisa.PyVisaInstrument(resource)
+                    self._interface = pyvisa.PyVisaInstrument(resource, **self._pyvisa_opts)
                 else:
                     raise IOException('Unknown resource type %s' % res_type)
 

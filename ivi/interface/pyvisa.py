@@ -26,6 +26,7 @@ THE SOFTWARE.
 
 import io
 import pyvisa as visa
+from pyvisa.resources import TCPIPSocket
 
 visa_rm = visa.ResourceManager()
 
@@ -38,6 +39,21 @@ class PyVisaInstrument:
     def __init__(self, resource, *args, **kwargs):
         if type(resource) is str:
             self.instrument = visa_rm.open_resource(resource, *args, **kwargs)
+            # Support for "TCPIPx::aaa.bbb.ccc.ddd::ppppp::SOCKET" resources:
+            # These have no separate control channel, thus a termination character
+            # is always needed. Default newline is good for most instruments.
+            if isinstance(self.instrument, TCPIPSocket):
+                if not self.instrument.read_termination:
+                    self.instrument.read_termination = "\n"
+                if not self.instrument.write_termination:
+                    self.instrument.write_termination = "\n"
+
+                # Setting up self.write_termination as a shortcut to the respetive
+                # VISA instrument class property value. This might speed up the
+                # self.write() method further below, although not sure by how much.
+                self.write_termination = self.instrument.write_termination         
+            else:
+                self.write_termination = ""
         else:
             self.instrument = resource
         self.buffer = io.BytesIO()
@@ -76,7 +92,12 @@ class PyVisaInstrument:
             for message_i in message:
                 self.write(message_i, encoding)
             return
-        self.write_raw(str(message).encode(encoding))
+        # Support "TCPIPx::::::SOCKET" resources, see __init__
+        if self.write_termination:
+            message = str(message) + self.write_termination
+        else:
+            message = str(message)
+        self.write_raw(message.encode(encoding))
 
     def read(self, num=-1, encoding = 'utf-8'):
         "Read string from instrument"
