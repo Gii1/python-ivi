@@ -1,4 +1,5 @@
 from typing import *
+from typing_extensions import *
 
 def get_prefer_pyvisa() -> bool: pass
 def set_prefer_pyvisa(value: bool = True): pass
@@ -24,8 +25,28 @@ def doc(obj, itm, docs, prefix) -> Any: pass
 def help(obj, item, complete, indent) -> Any: pass
 def list_resources() -> list[str]: pass
 
+class IviDriverOperation:
+    cache: bool
+    
+    driver_setup: Final[str] 
+    interchange_check: bool
+    logical_name: Final[str]
+    query_instrument_status: bool
+    range_check: bool
+    record_coercions: bool
+    io_resource_descriptor: Final[str]
+    simulate: Final[str]
+
+    def clear_interchange_warnings(self) -> None: pass
+    def get_next_coercion_record(self) -> str: pass
+    def get_next_interchange_warning(self) -> str: pass
+    def invalidate_all_attributes(self) -> None: pass
+    def reset_interchange_check(self) -> None: pass
+
+    # TODO: private functions
+
 class DriverOperation:
-    pass
+    driver_operation: IviDriverOperation
 
 class IviDriverIdentity:
     @property
@@ -78,7 +99,7 @@ class IviInherentAttribute(TypedDict, total=False):
     driver_setup: Any
     prefer_pyvisa: bool
 
-class Driver(DriverIdentity):
+class Driver(DriverIdentity, DriverOperation):
     @property 
     def initialized(self) -> bool: pass
 
