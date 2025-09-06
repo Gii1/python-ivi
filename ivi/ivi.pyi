@@ -1,14 +1,31 @@
 from typing import *
 
-class IviInherentAttribute(TypedDict, total=False):
-    range_check: bool
-    query_instr_status: bool
-    cache: bool
-    simulate: bool
-    record_coercions: bool
-    interchange_check: bool
-    driver_setup: Any
-    prefer_pyvisa: bool
+def get_prefer_pyvisa() -> bool: pass
+def set_prefer_pyvisa(value: bool = True): pass
+
+def get_index(l: list | dict, i: int) -> int: pass
+def get_index_dict(l: list): pass
+
+# TODO: Check what the functions are for
+def add_attribute(obj, name, attr, doc = None): pass
+def add_method(obj, name, f, doc = None): pass
+def add_property(obj, name, fget, fset = None, fdel = None, doc = None): pass
+def add_group_capability(obj, cap): pass
+
+def build_ieee_block(data: bytes) -> bytes: pass
+def decode_ieee_block(data: bytes) -> bytes: pass
+
+# TODO
+def get_sig(sig): pass 
+def rms(y): pass
+
+def trim_doc(docstring: str) -> str: pass
+def doc(obj, itm, docs, prefix) -> Any: pass
+def help(obj, item, complete, indent) -> Any: pass
+def list_resources() -> list[str]: pass
+
+class DriverOperation:
+    pass
 
 class IviDriverIdentity:
     @property
@@ -51,7 +68,17 @@ class IviDriverIdentity:
 class DriverIdentity:
     identity: IviDriverIdentity
 
-class Device(DriverIdentity):
+class IviInherentAttribute(TypedDict, total=False):
+    range_check: bool
+    query_instr_status: bool
+    cache: bool
+    simulate: bool
+    record_coercions: bool
+    interchange_check: bool
+    driver_setup: Any
+    prefer_pyvisa: bool
+
+class Driver(DriverIdentity):
     @property 
     def initialized(self) -> bool: pass
 
