@@ -43,47 +43,24 @@ class IviDriverOperation:
     def invalidate_all_attributes(self) -> None: pass
     def reset_interchange_check(self) -> None: pass
 
-    # TODO: private functions
-
 class DriverOperation:
     driver_operation: IviDriverOperation
+    # TODO: private functions
 
 class IviDriverIdentity:
-    @property
-    def description(self) -> str: pass
-
-    @property
-    def identifier(self) -> str: pass
-
-    @property
-    def revesion(self) -> str: pass
-
-    @property
-    def vendor(self) -> str: pass
-
-    @property
-    def instrument_manufacturer(self) -> str: pass
-
-    @property
-    def instrument_model(self) -> str: pass
-
-    @property
-    def instrument_firmware_revision(self) -> str: pass
-
-    @property
-    def specification_major_version(self) -> int: pass
-
-    @property
-    def specification_minor_version(self) -> int: pass
-
-    @property
-    def supported_instrument_models(self) -> str: pass
-
-    @property
-    def group_capabilities(self) -> str: pass
+    description: Final[str]
+    identifier: Final[str]
+    revesion: Final[str]
+    vendor: Final[str]
+    instrument_manufacturer: Final[str]
+    instrument_model: Final[str]
+    instrument_firmware_revision: Final[str]
+    specification_major_version: Final[int]
+    specification_minor_version: Final[int]
+    supported_instrument_models: Final[str]
+    group_capabilities: Final[str]
 
     def get_group_capabilities(self) -> list[str]: pass
-
     def get_supported_instrument_models(self) -> list[str]: pass
 
 class DriverIdentity:
@@ -100,8 +77,7 @@ class IviInherentAttribute(TypedDict, total=False):
     prefer_pyvisa: bool
 
 class Driver(DriverIdentity, DriverOperation):
-    @property 
-    def initialized(self) -> bool: pass
+    initialized: Final[bool]
 
     def initialize(self, **kwargs: Unpack[IviInherentAttribute]) -> None: pass
     def close(self) -> None: pass
