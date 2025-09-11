@@ -796,6 +796,17 @@ class ArbSeq(ivi.IviContainer):
                         If the function generator cannot store any more arbitrary sequences, this
                         function returns the error No Sequences Available.
                         """)
+        
+        self._add_property('outputs[].arbitrary.sequence.handle', 
+                        self._get_output_arbitrary_sequence_handle,
+                        self._set_output_arbitrary_sequence_handle,
+                        None,
+                        """
+                        Identifies which arbitrary sequence the function generator produces.
+                        """
+                        )
+
+
         self._add_method('outputs[].arbitrary.sequence.configure',
                         self._arbitrary_sequence_configure,
                         """
@@ -803,6 +814,15 @@ class ArbSeq(ivi.IviContainer):
                         sequence generation. These attributes are the arbitrary sequence handle,
                         gain, and offset.
                         """)
+
+    def _init_outputs(self):
+        try:
+            super(ArbSeq, self)._init_outputs()
+        except AttributeError:
+            pass
+        
+        self._output_arbitrary_sequence_handle = [0] * self._output_count
+        self.outputs._set_list(self._output_name)
     
     def _get_arbitrary_sequence_number_sequences_max(self):
         return self._arbitrary_sequence_number_sequences_max
@@ -816,6 +836,12 @@ class ArbSeq(ivi.IviContainer):
     def _get_arbitrary_sequence_length_min(self):
         return self._arbitrary_sequence_length_min
     
+    def _get_output_arbitrary_sequence_handle(self, index):
+        return self._output_arbitrary_sequence_handle[index]
+    
+    def _set_output_arbitrary_sequence_handle(self, index, value):
+        self._output_arbitrary_sequence_handle[index] = value
+    
     def _arbitrary_clear_memory(self):
         pass
     
@@ -823,7 +849,9 @@ class ArbSeq(ivi.IviContainer):
         pass
     
     def _arbitrary_sequence_configure(self, index, handle, gain, offset):
-        pass
+        self.outputs[index].arbitrary.sequence.handle = handle
+        self.outputs[index].arbitrary.gain = gain
+        self.outputs[index].arbitrary.offset = offset
     
     def _arbitrary_sequence_create(self, handle_list, loop_count_list):
         return "handle"
