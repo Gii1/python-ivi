@@ -48,10 +48,11 @@ class PyVisaInstrument:
                 if not self.instrument.write_termination:
                     self.instrument.write_termination = "\n"
 
-                # Setting up self.write_termination as a shortcut to the respetive
-                # VISA instrument class property value. This might speed up the
-                # self.write() method further below, although not sure by how much.
-                self.write_termination = self.instrument.write_termination         
+            # Setting up self.write_termination as a shortcut to the respetive
+            # VISA instrument class property value. This might speed up the
+            # self.write() method further below, although not sure by how much.
+            if hasattr(self.instrument, "write_termination"):
+                self.write_termination = self.instrument.write_termination
             else:
                 self.write_termination = ""
         else:
